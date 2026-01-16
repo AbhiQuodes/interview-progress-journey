@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend Interview Roadmap Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 23px;
+            top: 3rem;
+            bottom: -1rem;
+            width: 2px;
+            background-color: #334155;
+            z-index: 0;
+        }
+
+        /* Animations */
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fade-in 0.2s ease-out;
+        }
+
+        /* Print/PDF styles */
+        #pdf-template {
+            background-color: white !important;
+            color: black !important;
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-900 text-slate-200 h-screen overflow-hidden flex flex-col">
+
+    <div id="app" class="h-full flex flex-col">
+
+        <header class="bg-slate-950 border-b border-slate-800 p-4 shadow-lg shrink-0 z-20">
+            <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <h1 class="text-2xl font-bold flex items-center gap-2 text-white">
+                        <i class="fa-solid fa-layer-group text-blue-500"></i> Backend Prep
+                        <span class="text-xs bg-blue-600 text-white px-2 py-0.5 rounded ml-2">Improvised</span>
+                    </h1>
+                    <div class="flex items-center gap-3 mt-1">
+                        <p class="text-slate-400 text-sm">Node.js • Microservices (BumpBuddy) • SQL (E-commerce)</p>
+                        <transition name="fade">
+                            <span v-if="saveStatus"
+                                class="text-xs font-bold text-green-400 flex items-center gap-1 animate-pulse">
+                                <i class="fa-solid fa-check-circle"></i> {{ saveStatus }}
+                            </span>
+                        </transition>
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button @click="backupJSON"
+                        class="px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded text-sm transition flex items-center gap-2 text-slate-300">
+                        <i class="fa-solid fa-download"></i> Backup
+                    </button>
+                    <label
+                        class="px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded text-sm transition flex items-center gap-2 cursor-pointer text-slate-300">
+                        <i class="fa-solid fa-upload"></i> Restore
+                        <input type="file" @change="restoreJSON" class="hidden" accept=".json">
+                    </label>
+                    <button @click="generatePDF"
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded text-sm font-bold transition flex items-center gap-2 shadow-lg shadow-blue-900/50">
+                        <i class="fa-solid fa-file-pdf"></i> PDF Report
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-auto p-4 md:p-8 custom-scroll">
+            <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 " >
+
+        <section class="relative" >
+            <div class="sticky top-0 bg-slate-900/95 backdrop-blur pt-2 pb-4 z-30 border-b border-slate-800 mb-6 flex justify-between items-center">
+                <h2 class="text-xl font-bold text-blue-400">Day 1: Internals & Architecture</h2>
+                <div class="flex items-center gap-3">
+                    <div class="w-32 bg-slate-800 rounded-full h-2">
+                        <div class="bg-blue-500 h-2 rounded-full transition-all duration-500" :style="{ width: progress.day1 + '%' }"></div>
+                    </div>
+                    <span class="text-xs font-mono text-slate-400">{{ progress.day1 }}%</span>
+                </div>
+            </div>
+
+            <div class="relative pl-2">
+                <div v-for="(item, index) in day1" :key="index" class="relative flex gap-4 mb-6 group">
+                    
+                    <div v-if="index !== day1.length - 1" class="timeline-line group-hover:bg-slate-700 transition-colors"></div>
+
+                    <div class="relative z-10 flex-shrink-0 w-12 flex justify-center pt-1">
+                        <div @click="toggleComplete(item)" 
+                            class="w-8 h-8 rounded-full flex items-center justify-center border-2 cursor-pointer transition-all duration-300 shadow-lg"
+                            :class="item.completed ? 'bg-green-500 border-green-500 text-white' : 'bg-slate-800 border-slate-600 text-transparent hover:border-slate-400'">
+                            <i class="fa-solid fa-check text-sm"></i>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 bg-slate-800 rounded-xl border border-slate-700 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
+                        :class="{'opacity-60': item.completed}">
+
+                        <div @click="item.expanded = !item.expanded" class="p-4 cursor-pointer flex justify-between items-start hover:bg-slate-750 transition">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-xs font-bold px-2 py-0.5 rounded bg-slate-700 text-slate-300">{{ item.time }}</span>
+                                    <span class="text-xs font-bold px-2 py-0.5 rounded" 
+                                        :class="{'bg-red-900/50 text-red-300': item.priority === 'High' || item.priority === 'Critical', 
+                                                'bg-blue-900/50 text-blue-300': item.priority === 'Story',
+                                                'bg-slate-700 text-slate-400': item.priority === 'Med'}">
+                                        {{ item.priority }}
+                                    </span>
+                                </div>
+                                <h3 class="text-lg font-bold text-slate-100">{{ item.topic }}</h3>
+                            </div>
+                            <button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-700 transition">
+                                <i class="fa-solid fa-chevron-down transition-transform duration-300" :class="{'rotate-180': item.expanded}"></i>
+                            </button>
+                        </div>
+
+                        <div v-if="item.expanded" class="px-4 pb-4 border-t border-slate-700 bg-slate-800/50 animate-fade-in">
+                            
+                            <div class="mt-4 mb-4">
+                                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Key Concepts</p>
+                                <ul class="space-y-2">
+                                    <li v-for="sub in item.subtopics" class="flex items-start gap-2 text-sm text-slate-300">
+                                        <i class="fa-solid fa-caret-right text-blue-500 mt-1"></i>
+                                        {{ sub }}
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-blue-900/20 border border-blue-900/50 text-blue-200 text-sm p-3 rounded mb-4 flex gap-2">
+                                <i class="fa-solid fa-lightbulb mt-0.5 text-yellow-400"></i>
+                                <div><strong>Strategy:</strong> {{ item.focus }}</div>
+                            </div>
+
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="text-xs font-semibold text-slate-500 uppercase">My Notes</label>
+                                    <textarea v-model="item.notes" @input="saveLocal" rows="3" class="w-full mt-1 p-3 text-sm bg-slate-900 border border-slate-700 rounded text-slate-200 focus:ring-1 focus:ring-blue-500 outline-none placeholder-slate-600" placeholder="Write your takeways here..."></textarea>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-semibold text-slate-500 uppercase">Resource / Doc Links</label>
+                                    <input type="text" v-model="item.links" @input="saveLocal" class="w-full mt-1 p-2 bg-slate-900 border border-slate-700 rounded text-sm text-blue-400 outline-none placeholder-slate-600" placeholder="Paste URL...">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+                 <section class="relative" >
+            <div class="sticky top-0 bg-slate-900/95 backdrop-blur pt-2 pb-4 z-30 border-b border-slate-800 mb-6 flex justify-between items-center">
+                    
+                        <h2 class="text-xl font-bold text-indigo-400">Day 2: DB & E-commerce</h2>
+                        <div class="flex items-center gap-3">
+                            <div class="w-32 bg-slate-800 rounded-full h-2">
+                                <div class="bg-indigo-500 h-2 rounded-full transition-all duration-500"
+                                    :style="{ width: progress.day2 + '%' }"></div>
+                            </div>
+                            <span class="text-xs font-mono text-slate-400">{{ progress.day2 }}%</span>
+                        </div>
+                    </div>
+
+                    <div class="relative pl-2">
+                        <div v-for="(item, index) in day2" :key="index" class="relative flex gap-4 mb-6 group">
+                            <div v-if="index !== day2.length - 1"
+                                class="timeline-line group-hover:bg-slate-700 transition-colors"></div>
+
+                            <div class="relative z-10 flex-shrink-0 w-12 flex justify-center pt-1">
+                                <div @click="toggleComplete(item)"
+                                    class="w-8 h-8 rounded-full flex items-center justify-center border-2 cursor-pointer transition-all duration-300 shadow-lg"
+                                    :class="item.completed ? 'bg-green-500 border-green-500 text-white' : 'bg-slate-800 border-slate-600 text-transparent hover:border-slate-400'">
+                                    <i class="fa-solid fa-check text-sm"></i>
+                                </div>
+                            </div>
+
+                            <div class="flex-1 bg-slate-800 rounded-xl border border-slate-700 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
+                                :class="{'opacity-60': item.completed}">
+
+                                <div @click="item.expanded = !item.expanded"
+                                    class="p-4 cursor-pointer flex justify-between items-start hover:bg-slate-750 transition">
+                                    <div>
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span
+                                                class="text-xs font-bold px-2 py-0.5 rounded bg-slate-700 text-slate-300">{{
+                                                item.time }}</span>
+                                            <span class="text-xs font-bold px-2 py-0.5 rounded" :class="{'bg-red-900/50 text-red-300': item.priority === 'High' || item.priority === 'Critical', 
+                                                           'bg-indigo-900/50 text-indigo-300': item.priority === 'Story',
+                                                           'bg-slate-700 text-slate-400': item.priority === 'Med'}">
+                                                {{ item.priority }}
+                                            </span>
+                                        </div>
+                                        <h3 class="text-lg font-bold text-slate-100">{{ item.topic }}</h3>
+                                    </div>
+                                    <button
+                                        class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-700 transition">
+                                        <i class="fa-solid fa-chevron-down transition-transform duration-300"
+                                            :class="{'rotate-180': item.expanded}"></i>
+                                    </button>
+                                </div>
+
+                                <div v-if="item.expanded"
+                                    class="px-4 pb-4 border-t border-slate-700 bg-slate-800/50 animate-fade-in">
+
+                                    <div class="mt-4 mb-4">
+                                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                                            Key Concepts</p>
+                                        <ul class="space-y-2">
+                                            <li v-for="sub in item.subtopics"
+                                                class="flex items-start gap-2 text-sm text-slate-300">
+                                                <i class="fa-solid fa-caret-right text-indigo-500 mt-1"></i>
+                                                {{ sub }}
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    <div
+                                        class="bg-indigo-900/20 border border-indigo-900/50 text-indigo-200 text-sm p-3 rounded mb-4 flex gap-2">
+                                        <i class="fa-solid fa-lightbulb mt-0.5 text-yellow-400"></i>
+                                        <div><strong>Strategy:</strong> {{ item.focus }}</div>
+                                    </div>
+
+                                    <div class="space-y-3">
+                                        <div>
+                                            <label class="text-xs font-semibold text-slate-500 uppercase">My
+                                                Notes</label>
+                                            <textarea v-model="item.notes" @input="saveLocal" rows="3"
+                                                class="w-full mt-1 p-3 text-sm bg-slate-900 border border-slate-700 rounded text-slate-200 focus:ring-1 focus:ring-indigo-500 outline-none placeholder-slate-600"
+                                                placeholder="Write your takeaways here..."></textarea>
+                                        </div>
+                                        <div>
+                                            <label class="text-xs font-semibold text-slate-500 uppercase">Resource / Doc
+                                                Links</label>
+                                            <input type="text" v-model="item.links" @input="saveLocal"
+                                                class="w-full mt-1 p-2 bg-slate-900 border border-slate-700 rounded text-sm text-indigo-400 outline-none placeholder-slate-600"
+                                                placeholder="Paste URL...">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+
+        <div id="pdf-template" class="pdf-only p-8 bg-white text-gray-900">
+            <div class="text-center border-b-2 border-gray-800 pb-4 mb-6">
+                <h1 class="text-3xl font-bold uppercase tracking-wide">Interview Prep Report</h1>
+                <p class="text-gray-500 mt-2">Customized for Node.js Microservices & E-commerce</p>
+                <p class="text-xs text-gray-400 mt-1">Generated on {{ new Date().toLocaleDateString() }}</p>
+            </div>
+
+            <div v-if="day1.some(i => i.notes || i.completed)">
+                <h2 class="text-xl font-bold text-blue-800 mb-4 bg-blue-50 p-2 rounded">Day 1: Internals & Architecture
+                </h2>
+                <div v-for="item in day1" class="mb-6 break-inside-avoid">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span v-if="item.completed" class="text-green-600 font-bold">[Completed]</span>
+                        <span v-else class="text-red-400 font-bold">[Pending]</span>
+                        <h3 class="font-bold text-lg">{{ item.topic }}</h3>
+                    </div>
+                    <div v-if="item.notes" class="bg-gray-100 p-3 rounded text-sm border-l-4 border-gray-600 mb-1">
+                        <strong>Notes:</strong> {{ item.notes }}
+                    </div>
+                    <div v-if="item.links" class="text-xs text-blue-600 underline">
+                        {{ item.links }}
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="day2.some(i => i.notes || i.completed)" class="mt-8">
+                <h2 class="text-xl font-bold text-indigo-800 mb-4 bg-indigo-50 p-2 rounded">Day 2: Databases &
+                    E-commerce</h2>
+                <div v-for="item in day2" class="mb-6 break-inside-avoid">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span v-if="item.completed" class="text-green-600 font-bold">[Completed]</span>
+                        <span v-else class="text-red-400 font-bold">[Pending]</span>
+                        <h3 class="font-bold text-lg">{{ item.topic }}</h3>
+                    </div>
+                    <div v-if="item.notes" class="bg-gray-100 p-3 rounded text-sm border-l-4 border-gray-600 mb-1">
+                        <strong>Notes:</strong> {{ item.notes }}
+                    </div>
+                    <div v-if="item.links" class="text-xs text-blue-600 underline">
+                        {{ item.links }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    saveStatus: '',
+                    day1: [
+                        {
+                            time: "08:00", priority: "High", completed: false, expanded: false,
+                            topic: "JS Core: Closures & Async",
+                            subtopics: ["Closures (Memory leaks context)", "Promise vs Async/Await", "Promise.all() vs for...of", "Event Loop Microtasks queue"],
+                            focus: "Why React Native uses closures? Promise.all vs for..of loops.", notes: "", links: ""
+                        },
+                        {
+                            time: "09:00", priority: "High", completed: false, expanded: false,
+                            topic: "Node.js Internals",
+                            subtopics: ["Event Loop Phases (Timer, Poll, Check)", "libuv & Thread Pool", "Worker Threads vs Child Processes", "Blocking the Event Loop"],
+                            focus: "Explain phases specifically. Don't just say 'Non-blocking'.", notes: "", links: ""
+                        },
+                        {
+                            time: "11:00", priority: "Med", completed: false, expanded: false,
+                            topic: "Express Middleware",
+                            subtopics: ["Middleware Chaining (next)", "Global Error Handling", "Request validation patterns", "Custom Middleware creation"],
+                            focus: "Global Error Handling (Medusa style). app.use(err, req...)", notes: "", links: ""
+                        },
+                        {
+                            time: "13:00", priority: "High", completed: false, expanded: false,
+                            topic: "REST & Status Codes",
+                            subtopics: ["HTTP Verbs (GET, POST, PUT, PATCH, DELETE)", "Status Codes (200, 201, 401, 403, 500)", "Statelessness definition", "API Versioning"],
+                            focus: "401 (Unauth) vs 403 (Forbidden). PUT (Replace) vs PATCH (Update).", notes: "", links: ""
+                        },
+                        {
+                            time: "14:00", priority: "Story", completed: false, expanded: true,
+                            topic: "Architecture: Microservices",
+                            subtopics: ["Monolith vs Microservices", "Inter-service comms (HTTP vs Msg Queue)", "AWS Lambda & SQS Usage", "Service Discovery concepts"],
+                            focus: "Defend BumpBuddy choice: Why separate Chat from User service?", notes: "", links: ""
+                        },
+                        {
+                            time: "16:00", priority: "High", completed: false, expanded: false,
+                            topic: "Auth & Security",
+                            subtopics: ["JWT Structure (Header, Payload, Sig)", "Session vs Token Auth", "Hashing (Bcrypt)", "CORS & CSRF basics"],
+                            focus: "JWT vs Sessions (Stateless vs Stateful). Password Hashing.", notes: "", links: ""
+                        },
+                        {
+                            time: "18:00", priority: "Review", completed: false, expanded: false,
+                            topic: "Day 1 Review",
+                            subtopics: ["Draw Architecture Diagram", "Explain 'What happens when I hit URL'", "Review Weak areas"],
+                            focus: "Draw system architecture diagrams. Explain flow aloud.", notes: "", links: ""
+                        }
+                    ],
+                    day2: [
+                        {
+                            time: "08:00", priority: "High", completed: false, expanded: false,
+                            topic: "SQL Modeling",
+                            subtopics: ["Normalization (1NF, 2NF, 3NF)", "Foreign Keys & Constraints", "1:1, 1:N, N:M Relationships", "Schema Design for E-com"],
+                            focus: "Normalization (3NF). Relationships (1:N, N:M) in E-commerce.", notes: "", links: ""
+                        },
+                        {
+                            time: "09:30", priority: "Med", completed: false, expanded: false,
+                            topic: "Joins & Raw SQL",
+                            subtopics: ["INNER vs LEFT vs RIGHT JOIN", "GROUP BY & HAVING", "Subqueries", "Aggregates (COUNT, SUM)"],
+                            focus: "Writing complex queries without ORM. Group By & Having.", notes: "", links: ""
+                        },
+                        {
+                            time: "11:00", priority: "Critical", completed: false, expanded: true,
+                            topic: "Transactions (ACID)",
+                            subtopics: ["Atomicity, Consistency, Isolation, Durability", "BEGIN, COMMIT, ROLLBACK", "Row locking (SELECT FOR UPDATE)", "Race Conditions"],
+                            focus: "Handling inventory race conditions (Commit/Rollback).", notes: "", links: ""
+                        },
+                        {
+                            time: "12:30", priority: "High", completed: false, expanded: false,
+                            topic: "Indexing & Performance",
+                            subtopics: ["B-Tree Index basics", "N+1 Problem Identification", "Eager vs Lazy Loading", "Explain Analyze usage"],
+                            focus: "Solving N+1 Problem (Eager vs Lazy load). Index tradeoffs.", notes: "", links: ""
+                        },
+                        {
+                            time: "14:30", priority: "Med", completed: false, expanded: false,
+                            topic: "System Design",
+                            subtopics: ["Vertical vs Horizontal Scaling", "Load Balancers", "Caching (Redis) strategies", "Database Replication basics"],
+                            focus: "Horizontal Scaling. Caching (Redis) for Chat/Sessions.", notes: "", links: ""
+                        },
+                        {
+                            time: "16:30", priority: "Story", completed: false, expanded: false,
+                            topic: "Deployment & DevOps",
+                            subtopics: ["Docker Containers", "CI/CD Pipeline concepts", "Reverse Proxy (Nginx)", "Env Variables management"],
+                            focus: "Explain Coolify, Docker basics, and Medusa Region logic.", notes: "", links: ""
+                        },
+                        {
+                            time: "18:00", priority: "Review", completed: false, expanded: false,
+                            topic: "Mock Interview",
+                            subtopics: ["STAR Method Practice", "Behavioral Questions", "Technical Deep dive explanation"],
+                            focus: "Practice the STAR method stories for BumpBuddy & Medusa.", notes: "", links: ""
+                        }
+                    ]
+                }
+            },
+            computed: {
+                progress() {
+                    const d1Done = this.day1.filter(i => i.completed).length;
+                    const d2Done = this.day2.filter(i => i.completed).length;
+                    return {
+                        day1: Math.round((d1Done / this.day1.length) * 100),
+                        day2: Math.round((d2Done / this.day2.length) * 100)
+                    }
+                }
+            },
+            mounted() {
+                const saved = localStorage.getItem('interviewPrepData_v3');
+                if (saved) {
+                    try {
+                        const parsed = JSON.parse(saved);
+                        this.mergeData(this.day1, parsed.day1);
+                        this.mergeData(this.day2, parsed.day2);
+                    } catch (e) { console.error("Corrupt save file"); }
+                }
+            },
+            methods: {
+                mergeData(current, saved) {
+                    if (!saved) return;
+                    current.forEach((item, i) => {
+                        if (saved[i]) {
+                            item.completed = saved[i].completed;
+                            item.notes = saved[i].notes;
+                            item.links = saved[i].links;
+                        }
+                    });
+                },
+                toggleComplete(item) {
+                    item.completed = !item.completed;
+                    this.saveLocal();
+                },
+                saveLocal() {
+                    const data = { day1: this.day1, day2: this.day2 };
+                    localStorage.setItem('interviewPrepData_v3', JSON.stringify(data));
+
+                    // Show Save Indicator
+                    this.saveStatus = 'Saved!';
+                    setTimeout(() => { this.saveStatus = ''; }, 2000);
+                },
+                backupJSON() {
+                    const data = JSON.stringify({ day1: this.day1, day2: this.day2 }, null, 2);
+                    const blob = new Blob([data], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `backend-prep-backup-${new Date().toISOString().slice(0, 10)}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                },
+                restoreJSON(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const parsed = JSON.parse(e.target.result);
+                            this.mergeData(this.day1, parsed.day1);
+                            this.mergeData(this.day2, parsed.day2);
+                            this.saveLocal();
+                            alert('Roadmap restored successfully!');
+                        } catch (err) {
+                            alert('Invalid JSON file.');
+                        }
+                    };
+                    reader.readAsText(file);
+                },
+                generatePDF() {
+                    const element = document.getElementById('pdf-template');
+                    element.style.display = 'block';
+
+                    const opt = {
+                        margin: 0.5,
+                        filename: 'Backend_Interview_Prep_Roadmap.pdf',
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: { scale: 2 },
+                        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+                    };
+
+                    html2pdf().set(opt).from(element).save().then(() => {
+                        element.style.display = 'none';
+                    });
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+
+</html>
